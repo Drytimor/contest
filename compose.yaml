@@ -1,0 +1,40 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    develop:
+#      watch:
+#        - action: rebuild
+#          path: requirements.txt
+    volumes:
+      - ./backend:/backend
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - back-net
+      - front-net
+    ports:
+      - '8000:8000'
+
+  db:
+    image: postgres:16.1-alpine3.19
+    restart: always
+    volumes:
+      - data:/var/lib/postgresql/data
+    env_file:
+      - backend/back_dev.env
+    networks:
+      - back-net
+    ports:
+      - '15432:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+
+volumes:
+  data:
+
+networks:
+  front-net:
+  back-net:
+
